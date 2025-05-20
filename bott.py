@@ -67,10 +67,9 @@ def main():
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, ai_chat))
 
     print("🚀 Bot đang chạy bằng Webhook tại:", APP_URL + "/webhook")
-    app.run_webhook(
+    app.run_web_app(
         listen="0.0.0.0",
         port=int(os.environ.get("PORT", 10000)),
-        webhook_url=APP_URL + "/webhook",
         path="/webhook"  # ✅ Quan trọng để Telegram nhận đúng endpoint
     )
 
