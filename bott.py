@@ -4,18 +4,18 @@ from openai import OpenAI
 from telegram import Update, ReplyKeyboardMarkup
 from telegram.ext import ApplicationBuilder, CommandHandler, MessageHandler, ContextTypes, filters
 
-# Khai báo token và URL cố định
+# Token và API Key từ biến môi trường
 BOT_TOKEN = os.getenv("BOT_TOKEN")
 DEEPINFRA_API_KEY = os.getenv("DEEPINFRA_API_KEY")
-APP_URL = "https://tiktokvn-checker-001.onrender.com"  # FIXED: URL Render công khai
+APP_URL = "https://tiktokvn-checker-001.onrender.com"  # ⚠️ Gắn cứng domain để Telegram webhook hoạt động
 
-# Khởi tạo OpenAI client dùng DeepInfra
+# Khởi tạo OpenAI client (DeepInfra proxy)
 client = OpenAI(
     api_key=DEEPINFRA_API_KEY,
     base_url="https://api.deepinfra.com/v1/openai"
 )
 
-# Giao diện menu lệnh
+# Lệnh /start
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     keyboard = [
         ["📹 Kiểm tra video", "👤 Theo dõi tài khoản"],
@@ -24,7 +24,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     reply_markup = ReplyKeyboardMarkup(keyboard, resize_keyboard=True)
     await update.message.reply_text("👋 Chào mừng đến với TiktokVN Checker!\nChọn tác vụ:", reply_markup=reply_markup)
 
-# Hàm xử lý tin nhắn và gọi AI
+# Xử lý tin nhắn và gọi AI
 async def ai_chat(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_message = update.message.text
 
@@ -41,6 +41,7 @@ async def ai_chat(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await update.message.reply_text("🧠 Bạn có thể hỏi bất cứ điều gì! Ví dụ: 'Cách tăng follow TikTok'")
         return
 
+    # Gọi AI
     try:
         response = client.chat.completions.create(
             model="gpt-3.5-turbo",
@@ -56,12 +57,10 @@ async def ai_chat(update: Update, context: ContextTypes.DEFAULT_TYPE):
     except Exception as e:
         await update.message.reply_text(f"❌ AI bị lỗi:\n\n{e}")
 
-# Chạy bot bằng webhook
+# Khởi chạy bằng Webhook
 def main():
     if not BOT_TOKEN or not DEEPINFRA_API_KEY:
         raise ValueError("❗ Thiếu BOT_TOKEN hoặc DEEPINFRA_API_KEY")
-
-    APP_URL = "https://tiktokvn-checker-001.onrender.com"  # domain cố định
 
     app = ApplicationBuilder().token(BOT_TOKEN).build()
     app.add_handler(CommandHandler("start", start))
@@ -72,7 +71,7 @@ def main():
         listen="0.0.0.0",
         port=int(os.environ.get("PORT", 10000)),
         webhook_url=APP_URL + "/webhook",
-        path="/webhook"  # 🛠️ RẤT QUAN TRỌNG – FIX LỖI 404
+        path="/webhook"  # ✅ Quan trọng để Telegram nhận đúng endpoint
     )
 
 if __name__ == "__main__":
