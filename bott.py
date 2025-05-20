@@ -61,6 +61,8 @@ def main():
     if not BOT_TOKEN or not DEEPINFRA_API_KEY:
         raise ValueError("❗ Thiếu BOT_TOKEN hoặc DEEPINFRA_API_KEY")
 
+    APP_URL = "https://tiktokvn-checker-001.onrender.com"  # domain cố định
+
     app = ApplicationBuilder().token(BOT_TOKEN).build()
     app.add_handler(CommandHandler("start", start))
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, ai_chat))
@@ -69,7 +71,8 @@ def main():
     app.run_webhook(
         listen="0.0.0.0",
         port=int(os.environ.get("PORT", 10000)),
-        webhook_url=APP_URL + "/webhook"
+        webhook_url=APP_URL + "/webhook",
+        path="/webhook"  # 🛠️ RẤT QUAN TRỌNG – FIX LỖI 404
     )
 
 if __name__ == "__main__":
